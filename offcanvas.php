@@ -2,7 +2,7 @@
 /*
 Plugin Name: OffCanvas
 Description: Displays post/page content in a sliding panel
-Version: 1.0
+Version: 1.2
 Author: Maxwell White
 Author URI: https://maxehmum.com
 */
@@ -16,7 +16,9 @@ if (!defined('ABSPATH')) {
 function offcanvas_content_scripts() {
     wp_enqueue_script('jquery');
     wp_enqueue_script('offcanvas-content', plugins_url('js/offcanvas.js', __FILE__), array('jquery'), '1.0', true);
+    wp_enqueue_script('pageflip-content', plugins_url('js/pageflip.js', __FILE__), array('jquery'), '1.0', true);
     wp_enqueue_style('offcanvas-styles', plugins_url('css/offcanvas.css', __FILE__));
+    wp_enqueue_style('pageflip-styles', plugins_url('css/pageflip.css', __FILE__));
     
     // Localize the script with new data
     wp_localize_script('offcanvas-content', 'ajax_object', array(
@@ -31,7 +33,16 @@ function add_offcanvas_container() {
     echo '<div id="offcanvas-panel">
             <div class="offcanvas-content">
                 <span class="close-panel">&times;</span>
-                <div id="offcanvas-content-area"></div>
+                <div id="offcanvas-content-area" class="pageflip-container">
+                    <div class="pageflip">
+                        <div class="page front" id="page-front"></div>
+                        <div class="page back" id="page-back"></div>
+                    </div>
+                </div>
+                <div class="navigation-buttons">
+                    <button id="prev-page">Previous</button>
+                    <button id="next-page">Next</button>
+                </div>
             </div>
           </div>';
 }
@@ -61,4 +72,4 @@ register_deactivation_hook(__FILE__, 'offcanvas_deactivate');
 
 function offcanvas_deactivate() {
     // Cleanup tasks if needed
-} 
+}
