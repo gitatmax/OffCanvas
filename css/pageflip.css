@@ -18,10 +18,23 @@
     height: 100%;
     position: absolute;
     backface-visibility: hidden;
+    overflow-y: auto;
 }
 
 .pageflip .page.back {
     transform: rotateY(180deg);
+}
+
+.pageflip.preparing {
+    pointer-events: none;
+}
+
+.pageflip.flip .page.front {
+    display: none;
+}
+
+.pageflip:not(.flip) .page.back {
+    display: none;
 }
 
 .pageflip.flip {
@@ -29,20 +42,52 @@
 }
 
 #prev-page, #next-page {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    display: inline-block;
     background: rgba(255, 255, 255, 0.9);
     border: none;
     padding: 10px;
     cursor: pointer;
     z-index: 10000;
+    margin: 10px;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+#prev-page.disabled, 
+#next-page.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
 #prev-page {
-    left: 10px;
+    float: left;
 }
 
 #next-page {
-    right: 10px;
+    float: right;
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 768px) {
+    #offcanvas-panel {
+        width: 100%;
+        right: -100%;
+    }
+    
+    #offcanvas-panel.active {
+        right: 0;
+    }
+    
+    .offcanvas-content {
+        padding: 15px;
+    }
+    
+    .close-panel {
+        right: 15px;
+        top: 15px;
+    }
+    
+    #prev-page, #next-page {
+        padding: 5px;
+    }
 }
