@@ -5,10 +5,19 @@ jQuery(document).ready(function($) {
 
     // Create navigation buttons dynamically only when needed
     function createNavigationButtons() {
-        if (buttonsCreated) return;
+        console.log('Creating navigation buttons');
+        if (buttonsCreated) {
+            console.log('Buttons already created, skipping');
+            return;
+        }
         
         var container = $('#offcanvas-panel .offcanvas-content');
-        if (!container.length) return;
+        console.log('Container found:', container.length > 0);
+        
+        if (!container.length) {
+            console.error('Container not found');
+            return;
+        }
         
         // Create new buttons
         var prevButton = $('<button>', {
@@ -30,6 +39,7 @@ jQuery(document).ready(function($) {
             'aria-label': 'Close panel',
             text: '×',
             click: function(e) {
+                console.log('Close button clicked directly');
                 e.preventDefault();
                 e.stopPropagation();
                 closePanel();
@@ -42,8 +52,14 @@ jQuery(document).ready(function($) {
         container.append(nextButton);
         container.append(closeButton);
         
+        console.log('Buttons appended to container');
+        console.log('Prev button exists:', $('#prev-page').length > 0);
+        console.log('Next button exists:', $('#next-page').length > 0);
+        console.log('Close button exists:', $('.close-panel').length > 0);
+        
         // Add click handlers for navigation buttons
         prevButton.on('click', function(e) {
+            console.log('Previous button clicked');
             e.preventDefault();
             e.stopPropagation();
             if (currentPostIndex > 0) {
@@ -52,6 +68,7 @@ jQuery(document).ready(function($) {
         });
 
         nextButton.on('click', function(e) {
+            console.log('Next button clicked');
             e.preventDefault();
             e.stopPropagation();
             if (currentPostIndex < currentPostIds.length - 1) {
@@ -65,12 +82,15 @@ jQuery(document).ready(function($) {
 
     // Update navigation button states
     function updateNavigationState() {
+        console.log('Updating navigation state, current index:', currentPostIndex);
+        console.log('Total posts:', currentPostIds.length);
         $('#prev-page').toggleClass('disabled', currentPostIndex === 0);
         $('#next-page').toggleClass('disabled', currentPostIndex === currentPostIds.length - 1);
     }
 
     // Load post content
     function loadPost(postId) {
+        console.log('Loading post:', postId);
         $.ajax({
             url: offcanvas_params.rest_url + '/' + postId,
             type: 'GET',
@@ -95,18 +115,26 @@ jQuery(document).ready(function($) {
 
     // Clean up function to remove navigation elements
     function cleanupNavigationElements() {
+        console.log('Cleaning up navigation elements');
         buttonsCreated = false;
         var container = $('#offcanvas-panel .offcanvas-content');
         container.find('.nav-button, .close-panel').remove();
+        console.log('Cleanup complete');
     }
 
     // Add click handler to posts/pages
     $('.offcanvas-trigger').on('click', function(e) {
+        console.log('Trigger clicked');
         e.preventDefault();
         e.stopPropagation();
         
         var postIds = $(this).data('post-ids');
-        if (!postIds) return;
+        console.log('Post IDs:', postIds);
+        
+        if (!postIds) {
+            console.error('No post IDs specified');
+            return;
+        }
         
         // Convert to array and validate
         currentPostIds = postIds.toString().split(',').map(function(id) {
@@ -115,7 +143,13 @@ jQuery(document).ready(function($) {
             return !isNaN(id);
         });
 
-        if (currentPostIds.length === 0) return;
+        console.log('Processed post IDs:', currentPostIds);
+        console.log('Number of posts:', currentPostIds.length);
+
+        if (currentPostIds.length === 0) {
+            console.error('No valid post IDs found');
+            return;
+        }
 
         currentPostIndex = 0;
 
@@ -124,10 +158,12 @@ jQuery(document).ready(function($) {
             url: offcanvas_params.rest_url + '/' + currentPostIds[currentPostIndex],
             type: 'GET',
             beforeSend: function() {
+                console.log('Loading content, removing active class');
                 $('#offcanvas-panel').removeClass('active');
                 cleanupNavigationElements();
             },
             success: function(response) {
+                console.log('Content loaded successfully');
                 var content = typeof response === 'string' ? response : response.content;
                 
                 if (content) {
@@ -139,13 +175,20 @@ jQuery(document).ready(function($) {
                     
                     contentArea.html(pageflipHtml);
                     
-                    // First add active class
+                    // First add active class and prevent body scroll
                     $('#offcanvas-panel').addClass('active');
+                    $('body').addClass('offcanvas-active');
                     
                     // Then create buttons if we have multiple posts
+                    console.log('Number of posts for button creation:', currentPostIds.length);
                     if (currentPostIds.length > 1) {
+                        console.log('Creating navigation buttons for multiple posts');
                         createNavigationButtons();
+                    } else {
+                        console.log('Single post, skipping button creation');
                     }
+                } else {
+                    console.error('Invalid response format');
                 }
             },
             error: function(xhr, status, error) {
@@ -156,6 +199,7 @@ jQuery(document).ready(function($) {
 
     // Close panel handler
     function closePanel() {
+        console.log('Closing panel');
         var panel = $('#offcanvas-panel');
         panel.removeClass('active');
         
@@ -164,9 +208,18 @@ jQuery(document).ready(function($) {
                 cleanupNavigationElements();
                 currentPostIndex = 0;
                 currentPostIds = [];
+                $('body').removeClass('offcanvas-active');
             }
         }, 300);
     }
+
+    // Close panel click handler
+    $(document).on('click', '#offcanvas-panel .close-panel', function(e) {
+        console.log('Close button clicked');
+        e.preventDefault();
+        e.stopPropagation();
+        closePanel();
+    });
 
     // Close panel when clicking outside
     $(document).on('click', function(e) {
@@ -178,6 +231,7 @@ jQuery(document).ready(function($) {
             target.closest('.nav-button').length || 
             target.hasClass('close-panel') || 
             target.closest('.close-panel').length) {
+            console.log('Click on button, not closing');
             return;
         }
         
@@ -186,6 +240,7 @@ jQuery(document).ready(function($) {
             !target.closest('.offcanvas-content').length && 
             !target.hasClass('offcanvas-trigger') && 
             !target.closest('.offcanvas-trigger').length) {
+            console.log('Click outside panel, closing');
             closePanel();
         }
     });
@@ -198,6 +253,7 @@ jQuery(document).ready(function($) {
     // Handle escape key
     $(document).on('keydown', function(e) {
         if (e.keyCode === 27 && $('#offcanvas-panel').hasClass('active')) {
+            console.log('Escape key pressed, closing panel');
             closePanel();
         }
     });
